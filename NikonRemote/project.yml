@@ -18,7 +18,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.jiangcheng.nikonremote
         INFOPLIST_FILE: NikonRemote/Info.plist
         CODE_SIGN_ENTITLEMENTS: NikonRemote/NikonRemote.entitlements
-        TARGETED_DEVICE_FAMILY: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.0"
         GENERATE_INFOPLIST_FILE: NO
         CURRENT_PROJECT_VERSION: "1"
