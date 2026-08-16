@@ -7,3 +7,10 @@ env/
 .DS_Store
 debug.log
 *.tmp
+
+# Xcode（XcodeGen 生成的工程与构建产物不入库）
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
