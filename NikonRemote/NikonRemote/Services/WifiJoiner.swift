@@ -13,7 +13,7 @@ enum WifiJoiner {
     static func join(ssid: String, password: String?, completion: @escaping (Bool, Error?) -> Void) {
         let configuration: NEHotspotConfiguration
         if let password, !password.isEmpty {
-            configuration = NEHotspotConfiguration(ssid: ssid, passphrase: password, isWPA3: false)
+            configuration = NEHotspotConfiguration(ssid: ssid, passphrase: password, isWEP: false)
         } else {
             configuration = NEHotspotConfiguration(ssid: ssid)
         }
@@ -31,9 +31,5 @@ enum WifiJoiner {
     /// 移除已保存的热点配置（下次加入时需重新授权）。
     static func forget(ssid: String) {
         NEHotspotConfigurationManager.shared.removeConfiguration(forSSID: ssid)
-    }
-
-    static func forgetAll() {
-        NEHotspotConfigurationManager.shared.removeAllConfigurations()
     }
 }

@@ -131,7 +131,7 @@ extension CameraDiscovery: NetServiceDelegate {
         }
         guard rc == 0, let resPtr = res else { return nil }
         guard let sa = resPtr.pointee.ai_addr else { return nil }
-        let addr = sa.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr }
+        var addr = sa.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr }
         var buf = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
         return inet_ntop(AF_INET, &addr, &buf, socklen_t(buf.count)).map { String(cString: $0) }
     }

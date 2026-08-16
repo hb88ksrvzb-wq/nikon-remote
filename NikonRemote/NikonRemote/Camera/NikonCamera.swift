@@ -18,7 +18,8 @@ final class NikonCamera {
 
     func loadStorages() throws {
         let (_, data) = try session.transaction(op: .getStorageIDs, expectsData: true)
-        storages = try ByteReader(data).readUInt32Array()
+        var reader = ByteReader(data)
+        storages = try reader.readUInt32Array()
     }
 
     func storageInfo(_ storageID: UInt32) throws -> PTPStorageInfo {
@@ -32,7 +33,8 @@ final class NikonCamera {
     func objectHandles(storageID: UInt32? = nil, objectFormatCode: UInt32 = 0) throws -> [UInt32] {
         let storage = storageID ?? 0xFFFFFFFF
         let (_, data) = try session.transaction(op: .getObjectHandles, params: [storage, objectFormatCode, 0], expectsData: true)
-        return try ByteReader(data).readUInt32Array()
+        var reader = ByteReader(data)
+        return try reader.readUInt32Array()
     }
 
     func objectInfo(handle: UInt32) throws -> PTPObjectInfo {

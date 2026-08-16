@@ -78,7 +78,7 @@ final class PTPIPSession {
                     connected = true
                     break
                 } catch {
-                    if eventFD >= 0 { close(eventFD); eventFD = -1 }
+                    if eventFD >= 0 { Darwin.close(eventFD); eventFD = -1 }
                     if attempt < 4 { Thread.sleep(forTimeInterval: 0.15) } else { throw error }
                 }
             }
@@ -91,8 +91,8 @@ final class PTPIPSession {
 
             return PTPIPSession(commandFD: cmdFD, eventFD: eventFD, sessionID: sessionID)
         } catch {
-            if cmdFD >= 0 { close(cmdFD) }
-            if eventFD >= 0 { close(eventFD) }
+            if cmdFD >= 0 { Darwin.close(cmdFD) }
+            if eventFD >= 0 { Darwin.close(eventFD) }
             throw error
         }
     }
@@ -119,8 +119,8 @@ final class PTPIPSession {
         isClosed = true
         stateLock.unlock()
         guard !already else { return }
-        close(commandFD)
-        close(eventFD)
+        Darwin.close(commandFD)
+        Darwin.close(eventFD)
     }
 
     // MARK: - 命令事务
@@ -590,19 +590,16 @@ enum POSIXSocket {
 
         let result = withUnsafePointer(to: &addr) { ptr -> Int32 in
             ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { saPtr in
-                connect(fd, saPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+                Darwin.connect(fd, saPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
             }
         }
         if result < 0 {
             let err = errno
             if err == EINPROGRESS {
                 // 等待可写
-                var fds = fd_set()
-                FD_ZERO(&fds)
-                FD_SET(fd, &fds)
-                var timeout = timeval(tv_sec: 5, tv_usec: 0)
-                let sel = select(fd + 1, nil, &fds, nil, &timeout)
-                if sel <= 0 {
+                var pfd = pollfd(fd: fd, events: Int16(POLLOUT), revents: 0)
+                let ready = poll(&pfd, 1, 5000)
+                if ready <= 0 {
                     throw PTPError.timeout
                 }
                 var sockErr: Int32 = 0
@@ -634,12 +631,9 @@ private func readFull(fd: Int32, into buffer: inout [UInt8], count: Int, timeout
     var total = 0
     while total < count {
         if let timeout {
-            var fds = fd_set()
-            FD_ZERO(&fds)
-            FD_SET(fd, &fds)
-            var tv = timeval(tv_sec: Int(timeout), tv_usec: 0)
-            let sel = select(fd + 1, &fds, nil, nil, &tv)
-            if sel <= 0 { return false }
+            var pfd = pollfd(fd: fd, events: Int16(POLLIN), revents: 0)
+            let ready = poll(&pfd, 1, Int32(timeout * 1000))
+            if ready <= 0 { return false }
         }
         let n = buffer.withUnsafeMutableBytes { (raw: UnsafeMutableRawBufferPointer) -> Int in
             let base = raw.baseAddress!.advanced(by: total)

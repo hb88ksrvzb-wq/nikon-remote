@@ -219,13 +219,13 @@ final class CameraManager: ObservableObject {
                 result.append(CameraParamOption(id: "enum-\(i)", label: label(for: value, dataType: desc.dataType, code: desc.code), value: value))
             }
         } else if let minV = desc.rangeMin, let maxV = desc.rangeMax, let stepV = desc.rangeStep {
-            let min = minV.uint32Value ?? 0
-            let max = maxV.uint32Value ?? min
-            let step = max(1, stepV.uint32Value ?? 1)
-            let count = step == 0 ? 0 : ((max - min) / step) + 1
+            let minVal = minV.uint32Value ?? 0
+            let maxVal = maxV.uint32Value ?? minVal
+            let step = Swift.max(1, stepV.uint32Value ?? 1)
+            let count = step == 0 ? 0 : ((maxVal - minVal) / step) + 1
             // 范围过大会撑爆界面，最多生成 400 项
             guard count > 0, count <= 400 else { return [] }
-            var value = min
+            var value = minVal
             for _ in 0..<Int(count) {
                 let v: PTPValue = desc.dataType == .int16 ? .int16(Int16(truncatingIfNeeded: value)) : .uint32(value)
                 result.append(CameraParamOption(id: "range-\(value)", label: label(for: v, dataType: desc.dataType, code: desc.code), value: v))
